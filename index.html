@@ -89,7 +89,10 @@ h1{text-align:center;font-size:26px;color:#6b3d0f;margin-bottom:4px}
     <button class="pbtn" onclick="beginLevel()">Play Selected Level</button>
   </div>
   <div class="icard" id="idetail">
-    <h2 id="ititle"></h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <h2 id="ititle" style="margin:0;"></h2>
+      <button class="togbtn" id="tog-subset" onclick="toggleSubset()" style="font-size:11px;padding:3px 10px;">One of each</button>
+    </div>
     <p id="idesc"></p>
     <div class="inlist" id="inlist"></div>
   </div>
@@ -108,6 +111,7 @@ h1{text-align:center;font-size:26px;color:#6b3d0f;margin-bottom:4px}
   <div id="ai-play" style="display:none;margin-bottom:14px;"></div>
   <div id="btns"><button class="pbtn" onclick="restartLevel()">Restart</button></div>
   <div id="toggles">
+    <span class="tog"><span>Difficulty:</span> <button class="togbtn active" id="tog-easy" onclick="toggleEasy()">Normal</button></span>
     <span class="tog"><span>My goal:</span> <button class="togbtn active" id="tog-side" onclick="toggleSide()">Ascend (+)</button></span>
     <span class="tog"><span>Card hints:</span> <button class="togbtn active" id="tog-hints" onclick="toggleHints()">Shown</button></span>
   </div>
@@ -129,6 +133,7 @@ const NEUME_IMGS = {
   "oligon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIgAAAAwCAIAAABFQaUdAAAElElEQVR4nO2aPVPqTBTHdzcvCCj4glraWtjYOI4to59AC+0caSz8IH4Fe78AjS2ljVLQWjjSOAqjEEJINptzizN3nwyKhufmXlbYX7WGmF3OP/9zTjZQACAa9WCTXoDmc7QwiqKFURQtjKJoYRRFC6MoWhhF0cIoihZGUbQwiqKFURQz4Xlvb29LS0uEEM65ZVmjTouiiDGGg1TWpxqU0rGO//+JxtrE5JxTSk3TJIREUcQ5z2QyYRgKIUzTNAwjfjzdhc4aSYUJgsAwDAw9ISQMQwCwLMv3fcuy0CVxptUxo8IlI5MWYziGc845F0JkMhnbtoc+BQAhhBzMzc2lu9BZI2mNCYLAsiysLuiGbrebzWbxSBAEACDTF2NsWl/zpF5LRpFUGGmRIAhw7HleoVB4f39fXFzEI4PBgBCCxeaffYF/zKgbLvXvO0a77HneYDBAi9zc3GxtbVFK7+/vm80mnmCaJmPMNM1pVYUQQkeQ+kRJHUMIyWQyWOQdx7m9vW21WoVCoVwul0ql7e3t3d3dvb29zc1N27Ydx5nWrmyUBhsbGynPBOPQ7/dxUKvVCCHYN0sNPnYEs8Px8fHDwwMADAaDeMTwWQIAOOd4xPf9JKFOKowQIooiHOB8l5eXhJBCoUAIKRaLeCuhpXK53GTDNClOT08bjQZGzHEcGTSMmNQmTWHw0gDAOY+iKAzDIAiOjo7Ib8fkcrn5+XlCCG4QzBrxx4Ozs7Pn52cZNKmNNBPe3KkJg6pgNmu1WgDw9PR0cHCQzWaHVjmtBeZrlpeXye8UsrOz02w2MWtxznEgDYRPF+kI0+12ASCKol6vFz/ebrf39/dN00Qx8vl8sViccIQmAZZb1AZZX19/fX3FKHmehwOUBHNPOsJATGecRk4mhDg8PCSzahQJZjPDMPL5PCEkl8utrKxgRyCzmeye0hRGKtHpdPr9vrSO53mdTqdSqcj14cpmjdXVVRzEc3ulUnl8fByKodQpBWFk4ZJ6CCE4547j4KdhGLbb7fPz8wmFZcJgKstms7ibyRiT25rValUIEW+ah1rqTxlv238UQgi5Dtd1e73e3d1do9Go1Wr1ev3l5SWVWRTHsizDMHBfitL/Ant9fX1yckII8X0fs718a/UVCR3zBdihS3sKIeK1LggC2R0mKXo/Gtd1fd/nnNfr9YuLi1KpZNv21dWVfNJIfqkUHAMAURRRSuN3geu6tm3H33VO6xsaBAAYY2EYhmFomqZlWQDQ7/er1Wq5XF5bW5Nn4m2Kqe8L0kllcnEft5IAIAgCSqllWVO8uRlP5pL4i3bP87AnEkIwxr4NRcrC4NUYY67rooewDCZZyhSAjjEMA1OF/FO+j/d9n1KaZFPxT4X5qD9e8FPrcM6/tfAPpdvtLiwsSNOMsgUAoLf+umPkv3+cKYoifNkcLz/fdyM/GSzvMmljKsN2wLZtaZRP894Q6aSyIZcMtQOjPDRN+L7PGJPNDmZ1xli8M5a/Mfq0GA+RZo3RpMg0J5YfjRZGUbQwiqKFURQtjKJoYRRFC6MoWhhF0cIoihZGUbQwivILlN0JO7ztZwQAAAAASUVORK5CYII=",
   "kentimata": "data:image/png;base64,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",
   "petaste": "data:image/png;base64,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",
+  "oligon_kent_2b": "data:image/png;base64,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",
   "oligon_kent_2": "data:image/png;base64,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",
   "petaste_oligon_2": "data:image/png;base64,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",
   "oligon_kent_3": "data:image/png;base64,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",
@@ -180,6 +185,7 @@ const LEVELS = [
       {name:"Petasté",effect:1,key:"petaste",desc:"Up one, flutter",cls:"up"},
       {name:"Apostrophos",effect:-1,key:"apostrophos",desc:"Down one",cls:"dn"},
       {name:"Apostrophos+flutter",effect:-1,key:"apostrophos_flutter",desc:"Down one, stressed",cls:"dn"},
+      {name:"Ypporoē",effect:-2,key:"ypporoi",desc:"Down two (consecutive)",cls:"dn"},
     ]
   },
   {
@@ -191,11 +197,13 @@ const LEVELS = [
       {name:"Oligon",effect:1,key:"oligon",desc:"Up one",cls:"up"},
       {name:"Petasté",effect:1,key:"petaste",desc:"Up one, flutter",cls:"up"},
       {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2",desc:"Up two (3rd)",cls:"up"},
+      {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2b",desc:"Up two (3rd)",cls:"up"},
       {name:"Petasté+Oligon",effect:2,key:"petaste_oligon_2",desc:"Up two, flutter (3rd)",cls:"up"},
       {name:"Apostrophos",effect:-1,key:"apostrophos",desc:"Down one",cls:"dn"},
       {name:"Ypporoē",effect:-2,key:"ypporoi",desc:"Down two (consecutive)",cls:"dn"},
       {name:"Elaphron",effect:-2,key:"elaphron",desc:"Jump down two (3rd)",cls:"dn"},
       {name:"Elaphron+flutter",effect:-2,key:"elaphron_flutter",desc:"Jump down two, stressed",cls:"dn"},
+      {name:"Elaphron",effect:-2,key:"elaphron",desc:"Jump down two",cls:"dn"},
     ]
   },
   {
@@ -206,6 +214,7 @@ const LEVELS = [
       {name:"Oligon",effect:1,key:"oligon",desc:"Up one",cls:"up"},
       {name:"Kentemata",effect:1,skip:true,key:"kentimata",desc:"Up one — skips AI!",cls:"sp"},
       {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2",desc:"Up two (3rd)",cls:"up"},
+      {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2b",desc:"Up two (3rd)",cls:"up"},
       {name:"Oligon+Kentema",effect:3,key:"oligon_kent_3",desc:"Up three (4th)",cls:"up"},
       {name:"Petasté+Kentema",effect:3,key:"petaste_kent_3",desc:"Up three, flutter (4th)",cls:"up"},
       {name:"Apostrophos",effect:-1,key:"apostrophos",desc:"Down one",cls:"dn"},
@@ -234,44 +243,84 @@ const LEVELS = [
       {name:"Kamelē",effect:-4,key:"kamele",desc:"Down four",cls:"dn"},
       {name:"Kamelē+Apostrophos",effect:-5,key:"desc5",desc:"Down five (6th)",cls:"dn"},
       {name:"Kamelē+Apostrophos+flutter",effect:-5,key:"desc5_flutter",desc:"Down five, stressed",cls:"dn"},
+      {name:"Apostrophos",effect:-1,key:"apostrophos",desc:"Down one",cls:"dn"},
     ]
   },
   {
     name:"Full Arsenal",
     desc:"All neumes including 6ths, 7ths and octaves. Smart AI. Reach +12 to claim mastery.",
-    goal:12, handSize:7, smartAI:true,
+    goal:12, handSize:4, smartAI:true,
     pool:[
       {name:"Ison",effect:0,key:"ison",desc:"Stay",cls:"st"},
+      {name:"Ison",effect:0,key:"ison",desc:"Stay",cls:"st"},
+      {name:"Oligon",effect:1,key:"oligon",desc:"Up one",cls:"up"},
+      {name:"Oligon",effect:1,key:"oligon",desc:"Up one",cls:"up"},
+      {name:"Oligon",effect:1,key:"oligon",desc:"Up one",cls:"up"},
       {name:"Oligon",effect:1,key:"oligon",desc:"Up one",cls:"up"},
       {name:"Kentemata",effect:1,skip:true,key:"kentimata",desc:"Up one — skips AI!",cls:"sp"},
+      {name:"Kentemata",effect:1,skip:true,key:"kentimata",desc:"Up one — skips AI!",cls:"sp"},
+      {name:"Petasté",effect:1,key:"petaste",desc:"Up one, flutter",cls:"up"},
+      {name:"Petasté",effect:1,key:"petaste",desc:"Up one, flutter",cls:"up"},
       {name:"Petasté",effect:1,key:"petaste",desc:"Up one, flutter",cls:"up"},
       {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2",desc:"Up two (3rd)",cls:"up"},
+      {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2b",desc:"Up two (3rd)",cls:"up"},
+      {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2",desc:"Up two (3rd)",cls:"up"},
+      {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2b",desc:"Up two (3rd)",cls:"up"},
+      {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2",desc:"Up two (3rd)",cls:"up"},
+      {name:"Oligon+Kentema",effect:2,key:"oligon_kent_2b",desc:"Up two (3rd)",cls:"up"},
+      {name:"Petasté+Oligon",effect:2,key:"petaste_oligon_2",desc:"Up two, flutter",cls:"up"},
       {name:"Petasté+Oligon",effect:2,key:"petaste_oligon_2",desc:"Up two, flutter",cls:"up"},
       {name:"Oligon+Kentema",effect:3,key:"oligon_kent_3",desc:"Up three (4th)",cls:"up"},
+      {name:"Oligon+Kentema",effect:3,key:"oligon_kent_3",desc:"Up three (4th)",cls:"up"},
+      {name:"Oligon+Kentema",effect:3,key:"oligon_kent_3",desc:"Up three (4th)",cls:"up"},
+      {name:"Petasté+Kentema",effect:3,key:"petaste_kent_3",desc:"Up three, flutter",cls:"up"},
       {name:"Petasté+Kentema",effect:3,key:"petaste_kent_3",desc:"Up three, flutter",cls:"up"},
       {name:"Oligon+Ypsēlē",effect:4,key:"oligon_yps_4",desc:"Up four (5th)",cls:"up"},
+      {name:"Oligon+Ypsēlē",effect:4,key:"oligon_yps_4",desc:"Up four (5th)",cls:"up"},
+      {name:"Petasté+Ypsēlē",effect:4,key:"petaste_yps_4",desc:"Up four, flutter",cls:"up"},
       {name:"Petasté+Ypsēlē",effect:4,key:"petaste_yps_4",desc:"Up four, flutter",cls:"up"},
       {name:"Oligon+Ypsēlē",effect:5,key:"oligon_yps_5",desc:"Up five (6th)",cls:"up"},
+      {name:"Oligon+Ypsēlē",effect:5,key:"oligon_yps_5",desc:"Up five (6th)",cls:"up"},
+      {name:"Petasté+Ypsēlē",effect:5,key:"petaste_yps_5",desc:"Up five, flutter",cls:"up"},
       {name:"Petasté+Ypsēlē",effect:5,key:"petaste_yps_5",desc:"Up five, flutter",cls:"up"},
       {name:"Oligon+Ypsēlē+Kentema",effect:6,key:"oligon_yps_kent_6",desc:"Up six (7th)",cls:"up"},
       {name:"Petasté+Ypsēlē+Kentema",effect:6,key:"petaste_yps_kent_6",desc:"Up six, flutter",cls:"up"},
       {name:"Oligon+Ypsēlē+Kentema",effect:7,key:"oligon_yps_kent_7",desc:"Up seven (octave)",cls:"up"},
       {name:"Petasté+Ypsēlē+Kentema",effect:7,key:"petaste_yps_kent_7",desc:"Up seven, flutter",cls:"up"},
       {name:"Apostrophos",effect:-1,key:"apostrophos",desc:"Down one",cls:"dn"},
+      {name:"Apostrophos",effect:-1,key:"apostrophos",desc:"Down one",cls:"dn"},
       {name:"Apostrophos+flutter",effect:-1,key:"apostrophos_flutter",desc:"Down one, stressed",cls:"dn"},
+      {name:"Apostrophos+flutter",effect:-1,key:"apostrophos_flutter",desc:"Down one, stressed",cls:"dn"},
+      {name:"Ypporoē",effect:-2,key:"ypporoi",desc:"Down two (consecutive)",cls:"dn"},
       {name:"Ypporoē",effect:-2,key:"ypporoi",desc:"Down two (consecutive)",cls:"dn"},
       {name:"Elaphron",effect:-2,key:"elaphron",desc:"Jump down two",cls:"dn"},
       {name:"Elaphron+flutter",effect:-2,key:"elaphron_flutter",desc:"Jump down two, stressed",cls:"dn"},
+      {name:"Apostrophos+flutter",effect:-1,key:"apostrophos_flutter",desc:"Down one, stressed",cls:"dn"},
+      {name:"Apostrophos+flutter",effect:-1,key:"apostrophos_flutter",desc:"Down one, stressed",cls:"dn"},
+      {name:"Ypporoē",effect:-2,key:"ypporoi",desc:"Down two (consecutive)",cls:"dn"},
+      {name:"Ypporoē",effect:-2,key:"ypporoi",desc:"Down two (consecutive)",cls:"dn"},
+      {name:"Elaphron",effect:-2,key:"elaphron",desc:"Jump down two",cls:"dn"},
+      {name:"Elaphron",effect:-2,key:"elaphron",desc:"Jump down two",cls:"dn"},
+      {name:"Elaphron+flutter",effect:-2,key:"elaphron_flutter",desc:"Jump down two, stressed",cls:"dn"},
+      {name:"Elaphron+Apostrophos",effect:-3,key:"desc3",desc:"Down three",cls:"dn"},
       {name:"Elaphron+Apostrophos",effect:-3,key:"desc3",desc:"Down three",cls:"dn"},
       {name:"Elaphron+Apostrophos+flutter",effect:-3,key:"desc3_flutter",desc:"Down three, stressed",cls:"dn"},
+      {name:"Elaphron+Apostrophos+flutter",effect:-3,key:"desc3_flutter",desc:"Down three, stressed",cls:"dn"},
+      {name:"Kamelē",effect:-4,key:"kamele",desc:"Down four (5th)",cls:"dn"},
       {name:"Kamelē",effect:-4,key:"kamele",desc:"Down four (5th)",cls:"dn"},
       {name:"Kamelē+flutter",effect:-4,key:"kamele_flutter",desc:"Down four, stressed",cls:"dn"},
+      {name:"Kamelē+flutter",effect:-4,key:"kamele_flutter",desc:"Down four, stressed",cls:"dn"},
       {name:"Kamelē+Apostrophos",effect:-5,key:"desc5",desc:"Down five",cls:"dn"},
+      {name:"Kamelē+Apostrophos",effect:-5,key:"desc5",desc:"Down five",cls:"dn"},
+      {name:"Kamelē+Apostrophos+flutter",effect:-5,key:"desc5_flutter",desc:"Down five, stressed",cls:"dn"},
       {name:"Kamelē+Apostrophos+flutter",effect:-5,key:"desc5_flutter",desc:"Down five, stressed",cls:"dn"},
       {name:"Kamelē+Elaphron",effect:-6,key:"desc6",desc:"Down six",cls:"dn"},
       {name:"Kamelē+Elaphron+flutter",effect:-6,key:"desc6_flutter",desc:"Down six, stressed",cls:"dn"},
       {name:"Kamelē+Elaphron+Apostrophos",effect:-7,key:"desc7",desc:"Down seven (octave)",cls:"dn"},
       {name:"Kamelē+Elaphron+Apostrophos+flutter",effect:-7,key:"desc7_flutter",desc:"Down seven, stressed",cls:"dn"},
+      {name:"Elaphron+Apostrophos",effect:-3,key:"desc3",desc:"Down three",cls:"dn"},
+      {name:"Elaphron+Apostrophos+flutter",effect:-3,key:"desc3_flutter",desc:"Down three, stressed",cls:"dn"},
+      {name:"Kamelē",effect:-4,key:"kamele",desc:"Down four (5th)",cls:"dn"},
     ]
   }
 ];
@@ -280,6 +329,15 @@ let curLvl=0, pitch=0, dead=false, mcb=null, playerSign=1;
 
 
 let hintsShown = true;
+
+function toggleEasy(){
+  difficulty = difficulty==='easy' ? 'normal' : difficulty==='normal' ? 'hard' : 'easy';
+  const btn=document.getElementById('tog-easy');
+  btn.textContent = difficulty==='easy' ? 'Easy' : difficulty==='hard' ? 'Hard' : 'Normal';
+  btn.style.background = difficulty==='hard' ? '#7a1a1a' : difficulty==='easy' ? '#2a6a3a' : '';
+  btn.style.borderColor = difficulty==='hard' ? '#7a1a1a' : difficulty==='easy' ? '#2a6a3a' : '';
+  btn.classList.add('active');
+}
 
 function toggleSide(){
   playerSign = -playerSign;
@@ -319,17 +377,40 @@ function buildGrid(){
   });
 }
 
-function showDetail(){
+let showAllNeumes = false;
+let difficulty = 'normal';
+
+function toggleSubset(){
+  showAllNeumes = !showAllNeumes;
+  const btn=document.getElementById('tog-subset');
+  btn.textContent = showAllNeumes ? 'All neumes' : 'One of each';
+  showAllNeumes ? btn.classList.add('active') : btn.classList.remove('active');
+  renderNeumeList();
+}
+
+function getSubset(pool){
+  // One of each unique key (deduplicate by key)
+  const seen=new Set();
+  return pool.filter(c=>{ if(seen.has(c.key)) return false; seen.add(c.key); return true; });
+}
+
+function renderNeumeList(){
   const l=LEVELS[curLvl];
-  document.getElementById('ititle').textContent='Level '+(curLvl+1)+' — '+l.name;
-  document.getElementById('idesc').textContent=l.desc;
+  const cards = showAllNeumes ? l.pool : getSubset(l.pool);
   const nl=document.getElementById('inlist'); nl.innerHTML='';
-  l.pool.forEach(c=>{
+  cards.forEach(c=>{
     const d=document.createElement('div'); d.className='inp';
     const s=c.effect>0?'+'+c.effect:c.effect===0?'0':''+c.effect;
     d.innerHTML='<img src="'+NEUME_IMGS[c.key]+'" alt="'+c.name+'"><span>'+c.name+'<br><em>'+s+'</em></span>';
     nl.appendChild(d);
   });
+}
+
+function showDetail(){
+  const l=LEVELS[curLvl];
+  document.getElementById('ititle').textContent='Level '+(curLvl+1)+' — '+l.name;
+  document.getElementById('idesc').textContent=l.desc;
+  renderNeumeList();
 }
 
 function beginLevel(){
@@ -422,16 +503,27 @@ function hideAICard(){
 
 function aiTurn(){
   const l=LEVELS[curLvl],pool=l.pool;
-  // AI always moves pitch in -playerSign direction
   const aiDir=-playerSign;
-  const aiPool=pool.filter(x=>Math.sign(x.effect)===aiDir||x.effect===0);
+  let aiPool=pool.filter(x=>Math.sign(x.effect)===aiDir||x.effect===0);
   let c;
-  if(l.smartAI){
+  if(difficulty==='easy'){
+    // Easy: only ±1, and 40% chance of wasting turn on Ison
+    const small=aiPool.filter(x=>Math.abs(x.effect)<=1);
+    if(small.length) aiPool=small;
+    if(Math.random()<0.4){
+      const ison=pool.find(x=>x.effect===0);
+      if(ison){ c=ison; }
+    }
+    if(!c){ c=aiPool[Math.floor(Math.random()*aiPool.length)]; }
+  } else if(difficulty==='normal'){
+    // Normal: random pick from ±1–3 only, so big jumps never happen
+    const mid=aiPool.filter(x=>Math.abs(x.effect)<=3);
+    const src=mid.length?mid:aiPool;
+    c=src[Math.floor(Math.random()*src.length)];
+  } else {
+    // Hard: always picks biggest available move (smartAI regardless of level setting)
     const helpful=aiPool.filter(x=>x.effect!==0);
     c=helpful.length?helpful.reduce((a,b)=>Math.abs(a.effect)>Math.abs(b.effect)?a:b):aiPool[Math.floor(Math.random()*aiPool.length)];
-  } else {
-    const src=aiPool.length?aiPool:pool;
-    c=src[Math.floor(Math.random()*src.length)];
   }
   // No flipping needed - card naturally moves in AI's direction
   const eff=c.effect;
@@ -441,7 +533,7 @@ function aiTurn(){
   addLog('AI \u25b8 <strong>'+c.name+'</strong> ('+(eff>=0?'+':'')+eff+') \u2014 pitch: <strong>'+pitch+'</strong>');
   if(!checkEnd()){
     setStatus('Your turn \u2014 play a neume');
-    setTimeout(()=>{ hideAICard(); drawHand(); }, 1400);
+    setTimeout(()=>{ hideAICard(); drawHand(); }, 3000);
   }
 }
 
